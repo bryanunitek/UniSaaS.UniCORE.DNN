@@ -3893,9 +3893,9 @@ __metadata:
   linkType: hard
 
 "@types/knockout@npm:^3.4.77":
-  version: 3.4.77
-  resolution: "@types/knockout@npm:3.4.77"
-  checksum: 10/0b3ec7d0151ac5dbd4ecaf6579f46c341a3a08b6a92c90acad7a82fdff6962179fd1680640a8aa571d95076e5259c2ef1732bd3314cd6277afd8ae619b6d8dfe
+  version: 3.4.79
+  resolution: "@types/knockout@npm:3.4.79"
+  checksum: 10/858132cd469458c0a49708b14bba8052f5f3aa7d692819ec364d0d60fbad9557e0e9993800e6109ff80a5272d247e47585bbd78d02430f5d2445788cbf6292a7
   languageName: node
   linkType: hard
 
