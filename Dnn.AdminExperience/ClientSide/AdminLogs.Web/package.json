@@ -22,7 +22,7 @@
     "globals": "^17.4.0",
     "less": "4.6.4",
     "prop-types": "15.8.1",
-    "react": "^16.14.0",
+    "react": "^19.2.7",
     "react-click-outside": "^3.0.1",
     "react-dom": "^16.14.0",
     "react-hot-loader": "4.13.1",
