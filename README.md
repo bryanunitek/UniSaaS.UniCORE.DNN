@@ -1,61 +1,107 @@
-[![Build and Validate](https://github.com/dnnsoftware/Dnn.Platform/actions/workflows/ci.yml/badge.svg?event=push)](https://github.com/dnnsoftware/Dnn.Platform/actions/workflows/ci.yml)
-[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/dnnsoftware/Dnn.Platform/badge)](https://scorecard.dev/viewer/?uri=github.com/dnnsoftware/Dnn.Platform)
-[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/12209/badge)](https://www.bestpractices.dev/projects/12209)
+# UniSaaS.UniCORE.DNN
 
-![DNN Platform At A Glance](dnnplatform.png)
+**SCAFFOLD-ANCHOR repository — initial commit 2026-06-04.**
 
-# Project Description
+Full scaffolding, upstream-fork integration, and source-code work all pending a fresh dedicated kickoff arc. This initial commit exists to lock the repository's identity, licence position, and place in the UniCORE Sanity Check fleet so the work cannot be forgotten.
 
-DNN® ( formerly DotNetNuke® ) is the leading open-source web content management platform (CMS) in the Microsoft ecosystem. The product is used to build professional-looking and easy-to-use commercial websites, social intranets, community portals, or partner extranets. Containing dynamic content of all types, DNN sites are easy to deploy and update. The DNN Platform has been downloaded more than 8 million times and powers over 750,000 websites globally. A community of more than 1 million members forms a powerful support network. 
+Author: **Bryan Fred, Unitek Systems Limited, Bedford, United Kingdom.**
+First commit: **2026-06-04 08:11 UTC.**
 
-Thousands of free and commercial extensions, apps, and skins are available at the [DNN Store](http://store.dnnsoftware.com/), which makes extending a DNN site fast and affordable.
+---
 
-In addition to robust content management, the free, open source DNN Platform includes the following built-in features:
+## What this repository is
 
-* Single installation with multi-site capability
-* File and folder management
-* Static and dynamic Localization - 6 languages out-of-the-box (English, Dutch, French, German, Italian, and Spanish)
-* Customized web site templates and themes
-* Cloud-ready with MS Azure compatibility
-* 100's of REST API for site and content management
-* Modern client-side Web tools like CSS 3, HTML 5, JQuery, and React
-* UI with drag and drop capability, and rich-text editor for in-place UI editing
-* Extensible through custom modules and many third party modules available in the DNN store
-* Robust security
-* Administration features like: security roles, protected content, SEO, scheduler, SSL support, taxonomy, site log, and many more.
+`bryanunitek/UniSaaS.UniCORE.DNN` is the **DNN** family member: SaaS-deployment-shape public gift surface. Documentation today; source code at certification. Sister to the on-prem-shape repo.
 
-## Quick Links
+**Family purpose:** Web content management and site framework. Long-running .NET-based CMS / portal platform.
 
-* [Contribute](CONTRIBUTING.md)
-* [Build](.github/BUILD.md)
-* [Pull Request Procedures](.github/PULL_REQUEST_PROCESS.md)
-* [Versioning Policy](.github/VERSIONING_POLICY.md)
-* [Release Schedule](.github/RELEASE_SCHEDULE.md)
-* [DNN Docs](https://docs.dnncommunity.org)
-* [Community Website](https://dnncommunity.org)
-* [Community Forums](https://dnncommunity.org/forums)
-* [Community Blogs](https://dnncommunity.org/blogs)
-* [Community Dashboard](https://dnncommunity.org/Community/Dashboard)
-* [DNN Leadership Team](https://dnncommunity.org/Community/Leadership-Team)
-* [DNN MVPs](https://dnncommunity.org/Community/MVPs/Current-MVPs)
-* [DNN Connect Group on Facebook](https://www.facebook.com/groups/dnnconnect/)
-* [@DNNAwareness on Twitter](https://www.Twitter.com/DNN)
-* [DNN Store](http://store.dnnsoftware.com/)
+**Role in UniCORE:** Web CMS / portal building block. Consumed by Vertical COREs that need a content-management surface, and by UniCORE.GVB where a hosted-site CMS is part of the substrate offering.
 
-## How to Contribute
+---
 
-We encourage everyone to contribute.
-All the details on contributing with Git and on our working methods can be found on the [Contribute Page](CONTRIBUTING.md)
+## Upstream
 
-In addition, since DNN is part of the .NET Foundation, we require our contributors to abide by their [Code of Conduct](https://www.dotnetfoundation.org/code-of-conduct) rules and requirements also.
+- **Upstream project:** [https://github.com/dnnsoftware/Dnn.Platform](https://github.com/dnnsoftware/Dnn.Platform)
+- **Upstream licence:** MIT
+- **Our relationship:** Fork-and-extend. Upstream codebase is consumed verbatim under its original licence; our additions sit on top under CC BY 4.0.
 
-Pull requests are reviewed and accepted by the Approvers Group. Read more about the process and this group here: [Approvers](.github/APPROVERS.md)
+**Our additions:** UniCORE.DNN adds CC BY 4.0 UniCORE-authored modules, adapters, and integrations on top of the MIT Dnn.Platform base. Specific module set to be enumerated in the family kickoff arc.
 
-## .NET Foundation
+The merge discipline that governs how this repository absorbs upstream changes without losing UniCORE additions is documented in [`UPSTREAM-MERGE-DISCIPLINE.md`](UPSTREAM-MERGE-DISCIPLINE.md) at the root of this repository.
 
-This project is supported by the [.NET Foundation](https://dotnetfoundation.org).
+---
 
-## NDepend
+## Family — the four-repo pattern
 
-We monitor code quality of the DNN Platform using [NDepend](https://www.ndepend.com).
-![NDepend](.github/images/PoweredByNDepend.png)
+UniCORE.DNN is published as a **four-repo family**:
+
+- `bryanunitek/UniCORE.DNN` — public on-prem-deployment-shape gift surface
+- `bryanunitek/UniSaaS.UniCORE.DNN` — public SaaS-deployment-shape gift surface
+- `bryanunitek/UniCORE.DNN-Claw` (private) — on-prem-shape working repository
+- `bryanunitek/UniSaaS.UniCORE.DNN-Claw` (private) — SaaS-shape working repository
+
+**This repository is the `UniSaaS.UniCORE.DNN` member of the family.**
+
+Sister repos:
+
+- [`UniCORE.DNN`](https://github.com/bryanunitek/UniCORE.DNN)
+- `UniCORE.DNN-Claw (private)`
+- `UniSaaS.UniCORE.DNN-Claw (private)`
+
+---
+
+## Status
+
+**SCAFFOLD-ANCHOR ONLY** as of 2026-06-04 08:11 UTC. See [`STATUS.md`](STATUS.md) for the full status breakdown and what is and is not in this initial commit.
+
+The work has been queued in `memory/2026-06-04-post-24h-arc-discussion-queue.md` (workspace-local) with explicit Bryan-authorised scope:
+
+1. Fork MIT upstream into this repo (4 family members).
+2. Author CC BY 4.0 UniCORE-equivalent features over the upstream base.
+3. Apply the canonical upstream-merge discipline.
+4. Enrol in UniCORE Sanity Check.
+
+This initial commit accomplishes (4) only. Items (1)–(3) follow in fresh dedicated arcs.
+
+---
+
+## Files in this initial commit
+
+- [`README.md`](README.md) — this file
+- [`LICENSE.md`](LICENSE.md) — CC BY 4.0 for UniCORE additions
+- [`LICENSE.upstream.md`](LICENSE.upstream.md) — verbatim copy of the upstream OSS licence
+- [`STATUS.md`](STATUS.md) — explicit scaffold-anchor status with what's pending
+- [`UPSTREAM-MERGE-DISCIPLINE.md`](UPSTREAM-MERGE-DISCIPLINE.md) — canonical merge discipline (applies once upstream is forked in)
+- `.gitignore`
+
+---
+
+## Related repositories — UniCORE programme
+
+**Foundation triad (gift, public, CC BY 4.0):**
+- [`UniVERSE`](https://github.com/bryanunitek/UniVERSE) — programme
+- [`TrueAI`](https://github.com/bryanunitek/TrueAI) — Foundation (Nine Invariants)
+- [`UniCORE-AI`](https://github.com/bryanunitek/UniCORE-AI) — reference architecture (12 Levels)
+
+**Implementation reference (deployment-shape pair):**
+- [`UniCORE`](https://github.com/bryanunitek/UniCORE) — on-prem-shape
+- [`UniSaaS.UniCORE`](https://github.com/bryanunitek/UniSaaS.UniCORE) — SaaS-shape
+
+**Substrate-services layer (deployment-shape pair):**
+- [`UniCORE.GVB`](https://github.com/bryanunitek/UniCORE.GVB) — on-prem-shape
+- [`UniSaaS.UniCORE.GVB`](https://github.com/bryanunitek/UniSaaS.UniCORE.GVB) — SaaS-shape
+
+**Forked-upstream building blocks (this family + siblings):**
+- UniCORE.Avalonia family (4 repos)
+- UniCORE.DNN family (4 repos)
+
+---
+
+## Contact
+
+- **Public discussion:** [GitHub Discussions](https://github.com/bryanunitek/UniSaaS.UniCORE.DNN/discussions) (public repos only)
+- **Private contact / connection request:** [LinkedIn — Bryan Fred](https://www.linkedin.com/in/bryan-fred-02209753/)
+
+---
+
+*Author: Bryan Fred, Unitek Systems Limited, Bedford, United Kingdom. Public. Given, not sold. Irrevocable.*
