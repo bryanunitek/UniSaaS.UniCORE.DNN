@@ -19,13 +19,15 @@ First commit: **2026-06-04 08:11 UTC.**
 
 ---
 
-## Upstream
+## Substrate
 
-- **Upstream project:** [https://github.com/dnnsoftware/Dnn.Platform](https://github.com/dnnsoftware/Dnn.Platform)
-- **Upstream licence:** MIT
-- **Our relationship:** Fork-and-extend. Upstream codebase is consumed verbatim under its original licence; our additions sit on top under CC BY 4.0.
+- **Substrate project:** DNN (.NET CMS / portal platform).
+- **Substrate licence (upstream OSS):** MIT.
+- **Our relationship:** Fork-and-extend. The substrate codebase is consumed under its original licence; our additions sit on top under CC BY 4.0.
 
-**Our additions:** UniCORE.DNN adds CC BY 4.0 UniCORE-authored modules, adapters, and integrations on top of the MIT Dnn.Platform base. Specific module set to be enumerated in the family kickoff arc.
+**Our additions:** UniCORE.DNN adds CC BY 4.0 UniCORE-authored modules, adapters, and integrations on top of the DNN substrate base. Specific module set to be enumerated in the family kickoff arc.
+
+**Note on outbound links:** This repository deliberately does not publish outbound URLs to substrate-vendor sites. Substrate provenance is captured locally in [`STARTING-POINT.md`](STARTING-POINT.md) via anchor SHA; that is sufficient to reproduce the substrate state without amplifying vendor-side traffic from the UniCORE public surface.
 
 The merge discipline that governs how this repository absorbs upstream changes without losing UniCORE additions is documented in [`UPSTREAM-MERGE-DISCIPLINE.md`](UPSTREAM-MERGE-DISCIPLINE.md) at the root of this repository.
 

@@ -16,7 +16,7 @@ This repository exists as a **scaffold anchor**. Its purpose at this moment is t
 
 Nothing else is in this initial commit. Specifically:
 
-- **No upstream fork yet.** The upstream codebase (https://github.com/dnnsoftware/Dnn.Platform, MIT-licensed) has NOT been merged into this repository yet.
+- **Substrate anchored on `main`, additions pending on `unicore`.** The upstream substrate codebase (MIT-licensed) has been anchored at a forward-only reference on `main` per [`STARTING-POINT.md`](STARTING-POINT.md); UniCORE additions have NOT yet landed on the `unicore` branch.
 - **No UniCORE additions yet.** No source code, no controls, no projects.
 - **No solution / project structure.** No `.sln`, no `.csproj`.
 - **No CI configuration.**
