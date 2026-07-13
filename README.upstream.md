@@ -26,11 +26,11 @@ In addition to robust content management, the free, open source DNN Platform inc
 
 ## Quick Links
 
-* [Contribute](CONTRIBUTING.md)
-* [Build](.github/BUILD.md)
-* [Pull Request Procedures](.github/PULL_REQUEST_PROCESS.md)
-* [Versioning Policy](.github/VERSIONING_POLICY.md)
-* [Release Schedule](.github/RELEASE_SCHEDULE.md)
+* [Contribute](https://git.unitek-systems.com/UniCORE/UniSaaS.UniCORE.DNN/src/branch/main/CONTRIBUTING.md) (mirror: [GitHub](https://github.com/bryanunitek/UniSaaS.UniCORE.DNN/blob/main/CONTRIBUTING.md))
+* [Build](https://git.unitek-systems.com/UniCORE/UniSaaS.UniCORE.DNN/src/branch/main/.github/BUILD.md) (mirror: [GitHub](https://github.com/bryanunitek/UniSaaS.UniCORE.DNN/blob/main/.github/BUILD.md))
+* [Pull Request Procedures](https://git.unitek-systems.com/UniCORE/UniSaaS.UniCORE.DNN/src/branch/main/.github/PULL_REQUEST_PROCESS.md) (mirror: [GitHub](https://github.com/bryanunitek/UniSaaS.UniCORE.DNN/blob/main/.github/PULL_REQUEST_PROCESS.md))
+* [Versioning Policy](https://git.unitek-systems.com/UniCORE/UniSaaS.UniCORE.DNN/src/branch/main/.github/VERSIONING_POLICY.md) (mirror: [GitHub](https://github.com/bryanunitek/UniSaaS.UniCORE.DNN/blob/main/.github/VERSIONING_POLICY.md))
+* [Release Schedule](https://git.unitek-systems.com/UniCORE/UniSaaS.UniCORE.DNN/src/branch/main/.github/RELEASE_SCHEDULE.md) (mirror: [GitHub](https://github.com/bryanunitek/UniSaaS.UniCORE.DNN/blob/main/.github/RELEASE_SCHEDULE.md))
 * [DNN Docs](https://docs.dnncommunity.org)
 * [Community Website](https://dnncommunity.org)
 * [Community Forums](https://dnncommunity.org/forums)
@@ -45,11 +45,11 @@ In addition to robust content management, the free, open source DNN Platform inc
 ## How to Contribute
 
 We encourage everyone to contribute.
-All the details on contributing with Git and on our working methods can be found on the [Contribute Page](CONTRIBUTING.md)
+All the details on contributing with Git and on our working methods can be found on the [Contribute Page](https://git.unitek-systems.com/UniCORE/UniSaaS.UniCORE.DNN/src/branch/main/CONTRIBUTING.md) (mirror: [GitHub](https://github.com/bryanunitek/UniSaaS.UniCORE.DNN/blob/main/CONTRIBUTING.md))
 
 In addition, since DNN is part of the .NET Foundation, we require our contributors to abide by their [Code of Conduct](https://www.dotnetfoundation.org/code-of-conduct) rules and requirements also.
 
-Pull requests are reviewed and accepted by the Approvers Group. Read more about the process and this group here: [Approvers](.github/APPROVERS.md)
+Pull requests are reviewed and accepted by the Approvers Group. Read more about the process and this group here: [Approvers](https://git.unitek-systems.com/UniCORE/UniSaaS.UniCORE.DNN/src/branch/main/.github/APPROVERS.md) (mirror: [GitHub](https://github.com/bryanunitek/UniSaaS.UniCORE.DNN/blob/main/.github/APPROVERS.md))
 
 ## .NET Foundation
 

@@ -10,13 +10,13 @@ This repository exists as a **scaffold anchor**. Its purpose at this moment is t
 
 1. Reserve the canonical name on `bryanunitek/`.
 2. Lock the licence position (CC BY 4.0 for UniCORE additions over MIT upstream base).
-3. Document the family pattern and upstream relationship in [`README.md`](README.md).
-4. Document the merge discipline that will govern future upstream absorptions in [`UPSTREAM-MERGE-DISCIPLINE.md`](UPSTREAM-MERGE-DISCIPLINE.md).
+3. Document the family pattern and upstream relationship in [`README.md`](https://git.unitek-systems.com/UniCORE/UniSaaS.UniCORE.DNN/src/branch/main/README.md) (mirror: [GitHub](https://github.com/bryanunitek/UniSaaS.UniCORE.DNN/blob/main/README.md)).
+4. Document the merge discipline that will govern future upstream absorptions in [`UPSTREAM-MERGE-DISCIPLINE.md`](https://git.unitek-systems.com/UniCORE/UniSaaS.UniCORE.DNN/src/branch/main/UPSTREAM-MERGE-DISCIPLINE.md) (mirror: [GitHub](https://github.com/bryanunitek/UniSaaS.UniCORE.DNN/blob/main/UPSTREAM-MERGE-DISCIPLINE.md)).
 5. Enrol the repository in the **UniCORE Sanity Check fleet** so it cannot be forgotten.
 
 Nothing else is in this initial commit. Specifically:
 
-- **Substrate anchored on `main`, additions pending on `unicore`.** The upstream substrate codebase (MIT-licensed) has been anchored at a forward-only reference on `main` per [`STARTING-POINT.md`](STARTING-POINT.md); UniCORE additions have NOT yet landed on the `unicore` branch.
+- **Substrate anchored on `main`, additions pending on `unicore`.** The upstream substrate codebase (MIT-licensed) has been anchored at a forward-only reference on `main` per [`STARTING-POINT.md`](https://git.unitek-systems.com/UniCORE/UniSaaS.UniCORE.DNN/src/branch/main/STARTING-POINT.md) (mirror: [GitHub](https://github.com/bryanunitek/UniSaaS.UniCORE.DNN/blob/main/STARTING-POINT.md)); UniCORE additions have NOT yet landed on the `unicore` branch.
 - **No UniCORE additions yet.** No source code, no controls, no projects.
 - **No solution / project structure.** No `.sln`, no `.csproj`.
 - **No CI configuration.**
