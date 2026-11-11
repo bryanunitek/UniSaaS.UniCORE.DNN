@@ -48,6 +48,7 @@ namespace DotNetNuke.Services.Upgrade
     using DotNetNuke.Services.Upgrade.Internals;
     using DotNetNuke.Web.Client.ClientResourceManagement;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Logging;
 
     using Assembly = System.Reflection.Assembly;
     using FileInfo = DotNetNuke.Services.FileSystem.FileInfo;
@@ -59,7 +60,7 @@ namespace DotNetNuke.Services.Upgrade
     {
         private const string FipsCompilanceAssembliesCheckedKey = "FipsCompilanceAssembliesChecked";
         private const string FipsCompilanceAssembliesFolder = "App_Data\\FipsCompilanceAssemblies";
-        private static readonly ILog Logger = LoggerSource.Instance.GetLogger(typeof(Upgrade));
+        private static readonly ILogger Logger = DnnLoggingController.GetLogger<Upgrade>();
         private static readonly object ThreadLocker = new object();
         private static DateTime startTime;
 
@@ -328,7 +329,7 @@ namespace DotNetNuke.Services.Upgrade
                     }
                     catch (Exception exc)
                     {
-                        Logger.Error(exc);
+                        Logger.UpgradeAddModuleException(exc);
                         DnnInstallLogger.InstallLogError(exc);
                     }
                 }
@@ -518,7 +519,7 @@ namespace DotNetNuke.Services.Upgrade
             }
             catch (Exception ex)
             {
-                Logger.Error(ex);
+                Logger.UpgradeAddPortalException(ex);
 
                 if (HttpContext.Current != null)
                 {
@@ -571,7 +572,7 @@ namespace DotNetNuke.Services.Upgrade
                 }
                 catch (Exception ex)
                 {
-                    Logger.Error("File deletion failed for [Install\\" + file + "]. PLEASE REMOVE THIS MANUALLY." + ex);
+                    Logger.UpgradeFileDeletionFailedFor(ex, file);
                 }
             }
         }
@@ -602,7 +603,7 @@ namespace DotNetNuke.Services.Upgrade
             }
             catch (Exception ex)
             {
-                Logger.Error("Error cleanup file " + listFile, ex);
+                Logger.UpgradeErrorCleanupFile(ex, listFile);
 
                 exceptions += $"Error: {ex.Message + ex.StackTrace}{Environment.NewLine}";
 
@@ -610,15 +611,13 @@ namespace DotNetNuke.Services.Upgrade
                 DnnInstallLogger.InstallLogError(exceptions);
                 try
                 {
-                    using (StreamWriter streamWriter = File.CreateText(providerPath + stringVersion + "_Config.log"))
-                    {
-                        streamWriter.WriteLine(exceptions);
-                        streamWriter.Close();
-                    }
+                    using var streamWriter = File.CreateText(providerPath + stringVersion + "_Config.log");
+                    streamWriter.WriteLine(exceptions);
+                    streamWriter.Close();
                 }
                 catch (Exception exc)
                 {
-                    Logger.Error(exc);
+                    Logger.UpgradeDeleteFilesException(exc);
                 }
             }
 
@@ -654,7 +653,7 @@ namespace DotNetNuke.Services.Upgrade
                         }
                         catch (Exception exc)
                         {
-                            Logger.Error(exc);
+                            Logger.UpgradeExceptionDeletingScriptFileAfterExecution(exc);
                         }
                     }
                 }
@@ -854,7 +853,7 @@ namespace DotNetNuke.Services.Upgrade
             string[] files = Directory.GetFiles(providerPath, "*." + DefaultProvider);
             Array.Sort(files); // The order of the returned file names is not guaranteed on certain NAS systems; use the Sort method if a specific sort order is required.
 
-            Logger.TraceFormat(CultureInfo.InvariantCulture, "GetUpgradedScripts databaseVersion:{0} applicationVersion:{1}", databaseVersion, ApplicationVersion);
+            Logger.UpgradeGetUpgradedScripts(databaseVersion, ApplicationVersion);
 
             foreach (string file in files)
             {
@@ -877,7 +876,7 @@ namespace DotNetNuke.Services.Upgrade
                                 scriptFiles.AddRange(incrementalFiles);
                             }
 
-                            Logger.TraceFormat(CultureInfo.InvariantCulture, "GetUpgradedScripts including {0}", file);
+                            Logger.UpgradeGetUpgradedScriptsIncluding(file);
                         }
 
                         if (version == databaseVersion && version <= ApplicationVersion && GetFileName(file).Length == 9 + DefaultProvider.Length)
@@ -888,7 +887,7 @@ namespace DotNetNuke.Services.Upgrade
                                 scriptFiles.AddRange(incrementalFiles);
                             }
 
-                            Logger.TraceFormat(CultureInfo.InvariantCulture, "GetUpgradedScripts including {0}", file);
+                            Logger.UpgradeGetUpgradedScriptsIncluding(file);
                         }
 
                         ////else
@@ -1102,6 +1101,9 @@ namespace DotNetNuke.Services.Upgrade
                         }
                     }
                 }
+
+                // register any assemblies in the bin folder that are not yet registered
+                EnsureAssembliesRegistered();
             }
             else
             {
@@ -1200,7 +1202,7 @@ namespace DotNetNuke.Services.Upgrade
                     foreach (var log in installer.InstallerInfo.Log.Logs
                                                 .Where(l => l.Type == LogType.Failure))
                     {
-                        Logger.Error(log.Description);
+                        Logger.UpgradeFailureLog(log.Description);
                         DnnInstallLogger.InstallLogError(log.Description);
                     }
 
@@ -1223,7 +1225,7 @@ namespace DotNetNuke.Services.Upgrade
                 }
                 catch (Exception exc)
                 {
-                    Logger.Error(exc);
+                    Logger.UpgradeExceptionDeletingPackageFileAfterInstallation(exc);
                 }
             }
 
@@ -1381,7 +1383,7 @@ namespace DotNetNuke.Services.Upgrade
         {
             try
             {
-                // Remove UpdatePanel from Login Control - not neccessary in popup.
+                // Remove UpdatePanel from Login Control - not necessary in popup.
                 var loginControl = ModuleControlController.GetModuleControlByControlKey("Login", -1);
                 loginControl.SupportsPartialRendering = false;
 
@@ -1393,7 +1395,7 @@ namespace DotNetNuke.Services.Upgrade
             }
             catch (Exception ex)
             {
-                Logger.Error(ex);
+                Logger.UpgradeExceptionInUpgradeApplication(ex);
                 var log = new LogInfo
                 {
                     LogTypeKey = nameof(EventLogType.HOST_ALERT),
@@ -1408,7 +1410,7 @@ namespace DotNetNuke.Services.Upgrade
                 }
                 catch (Exception exc)
                 {
-                    Logger.Error(exc);
+                    Logger.UpgradeExceptionLoggingException(exc);
                 }
             }
 
@@ -1438,7 +1440,7 @@ namespace DotNetNuke.Services.Upgrade
         /// <returns>Exceptions logged or <see cref="string.Empty"/>.</returns>
         public static string UpgradeApplication(string providerPath, Version version, bool writeFeedback)
         {
-            DnnInstallLogger.InstallLogInfo(Localization.GetString("LogStart", Localization.GlobalResourceFile) + Localization.GetString("ApplicationUpgrades", Localization.GlobalResourceFile) + ": " + version.ToString(3));
+            DnnInstallLogger.InstallLogInfo(Localization.GetString("LogStart", Localization.GlobalResourceFile) + Localization.GetString("ApplicationUpgrades", Localization.GlobalResourceFile) + ": " + version.ToThreePartString());
             string exceptions = string.Empty;
             if (writeFeedback)
             {
@@ -1447,7 +1449,7 @@ namespace DotNetNuke.Services.Upgrade
 
             try
             {
-                switch (version.ToString(3))
+                switch (version.ToThreePartString())
                 {
                     case "10.0.0":
                         UpgradeToVersion10_0_0();
@@ -1456,13 +1458,13 @@ namespace DotNetNuke.Services.Upgrade
             }
             catch (Exception ex)
             {
-                Logger.Error(ex);
+                Logger.UpgradeExceptionDuringVersionSpecificUpgrade(ex, version);
                 exceptions += $"Error: {ex.Message + ex.StackTrace}{Environment.NewLine}";
 
                 // log the results
                 if (string.IsNullOrEmpty(exceptions))
                 {
-                    DnnInstallLogger.InstallLogInfo(Localization.GetString("LogEnd", Localization.GlobalResourceFile) + Localization.GetString("ApplicationUpgrades", Localization.GlobalResourceFile) + ": " + version.ToString(3));
+                    DnnInstallLogger.InstallLogInfo(Localization.GetString("LogEnd", Localization.GlobalResourceFile) + Localization.GetString("ApplicationUpgrades", Localization.GlobalResourceFile) + ": " + version.ToThreePartString());
                 }
                 else
                 {
@@ -1471,15 +1473,13 @@ namespace DotNetNuke.Services.Upgrade
 
                 try
                 {
-                    using (StreamWriter streamWriter = File.CreateText(providerPath + Globals.FormatVersion(version) + "_Application.log.resources"))
-                    {
-                        streamWriter.WriteLine(exceptions);
-                        streamWriter.Close();
-                    }
+                    using var streamWriter = File.CreateText(providerPath + Globals.FormatVersion(version) + "_Application.log.resources");
+                    streamWriter.WriteLine(exceptions);
+                    streamWriter.Close();
                 }
                 catch (Exception exc)
                 {
-                    Logger.Error(exc);
+                    Logger.UpgradeExceptionWritingExceptionLogForVersionSpecificUpgrade(exc, version);
                 }
             }
 
@@ -1521,7 +1521,7 @@ namespace DotNetNuke.Services.Upgrade
 
         public static string UpdateConfig(string configFile, Version version, string reason)
         {
-            DnnInstallLogger.InstallLogInfo(Localization.GetString("LogStart", Localization.GlobalResourceFile) + "UpdateConfig:" + version.ToString(3));
+            DnnInstallLogger.InstallLogInfo(Localization.GetString("LogStart", Localization.GlobalResourceFile) + "UpdateConfig:" + version.ToThreePartString());
             var exceptions = string.Empty;
             if (File.Exists(configFile))
             {
@@ -1529,7 +1529,7 @@ namespace DotNetNuke.Services.Upgrade
                 var stream = File.OpenText(configFile);
                 try
                 {
-                    var merge = new XmlMerge(stream, version.ToString(3), reason);
+                    var merge = new XmlMerge(stream, version.ToThreePartString(), reason);
 
                     // Process merge
                     merge.UpdateConfigs();
@@ -1548,7 +1548,7 @@ namespace DotNetNuke.Services.Upgrade
 
             if (string.IsNullOrEmpty(exceptions))
             {
-                DnnInstallLogger.InstallLogInfo(Localization.GetString("LogEnd", Localization.GlobalResourceFile) + "UpdateConfig:" + version.ToString(3));
+                DnnInstallLogger.InstallLogInfo(Localization.GetString("LogEnd", Localization.GlobalResourceFile) + "UpdateConfig:" + version.ToThreePartString());
             }
             else
             {
@@ -1560,7 +1560,7 @@ namespace DotNetNuke.Services.Upgrade
 
         public static string UpdateConfig(string providerPath, string configFile, Version version, string reason)
         {
-            DnnInstallLogger.InstallLogInfo(Localization.GetString("LogStart", Localization.GlobalResourceFile) + "UpdateConfig:" + version.ToString(3));
+            DnnInstallLogger.InstallLogInfo(Localization.GetString("LogStart", Localization.GlobalResourceFile) + "UpdateConfig:" + version.ToThreePartString());
             string exceptions = string.Empty;
             if (File.Exists(configFile))
             {
@@ -1568,14 +1568,14 @@ namespace DotNetNuke.Services.Upgrade
                 var stream = File.OpenText(configFile);
                 try
                 {
-                    var merge = new XmlMerge(stream, version.ToString(3), reason);
+                    var merge = new XmlMerge(stream, version.ToThreePartString(), reason);
 
                     // Process merge
                     merge.UpdateConfigs();
                 }
                 catch (Exception ex)
                 {
-                    Logger.Error(ex);
+                    Logger.UpgradeExceptionUpdatingConfig(ex);
                     exceptions += $"Error: {ex.Message + ex.StackTrace}{Environment.NewLine}";
 
                     // log the results
@@ -1587,7 +1587,7 @@ namespace DotNetNuke.Services.Upgrade
                     }
                     catch (Exception exc)
                     {
-                        Logger.Error(exc);
+                        Logger.UpgradeExceptionLoggingExceptionFromUpdatingConfig(exc);
                     }
                 }
                 finally
@@ -1599,7 +1599,7 @@ namespace DotNetNuke.Services.Upgrade
 
             if (string.IsNullOrEmpty(exceptions))
             {
-                DnnInstallLogger.InstallLogInfo(Localization.GetString("LogEnd", Localization.GlobalResourceFile) + "UpdateConfig:" + version.ToString(3));
+                DnnInstallLogger.InstallLogInfo(Localization.GetString("LogEnd", Localization.GlobalResourceFile) + "UpdateConfig:" + version.ToThreePartString());
             }
             else
             {
@@ -1659,6 +1659,9 @@ namespace DotNetNuke.Services.Upgrade
             UpgradeApplication();
 
             DataCache.ClearHostCache(true);
+
+            // register any assemblies in the bin folder that are not yet registered
+            EnsureAssembliesRegistered();
         }
 
         /// <summary>Gets a URL for an image which indicates the latest known version of DNN.</summary>
@@ -1902,7 +1905,7 @@ namespace DotNetNuke.Services.Upgrade
             }
             catch (Exception ex)
             {
-                Logger.Error(ex);
+                Logger.UpgradeUpdateNewtonsoftVersionException(ex);
             }
 
             return false;
@@ -1972,7 +1975,7 @@ namespace DotNetNuke.Services.Upgrade
             catch (Exception exc)
             {
                 // does not have permission to create the log file
-                Logger.Error(exc);
+                Logger.UpgradeCreateExecuteScriptLogException(exc);
             }
 
             if (!writeFeedback)
@@ -2123,14 +2126,54 @@ namespace DotNetNuke.Services.Upgrade
             }
         }
 
+        /// <summary>Scans the bin folder and registers every assembly in the database, ignoring whether it is already registered.</summary>
+        internal static void EnsureAssembliesRegistered()
+        {
+            DnnInstallLogger.InstallLogInfo(Localization.GetString("LogStart", Localization.GlobalResourceFile) + "CheckAssembliesForRegistration");
+
+            var binFolder = Path.Combine(Globals.ApplicationMapPath, "bin");
+            if (!Directory.Exists(binFolder))
+            {
+                DnnInstallLogger.InstallLogInfo(Localization.GetString("LogEnd", Localization.GlobalResourceFile) + "CheckAssembliesForRegistration");
+                return;
+            }
+
+            foreach (var strAssemblyPath in Directory.GetFiles(binFolder, "*.dll"))
+            {
+                Version version;
+                try
+                {
+                    version = AssemblyVersions.GetAssemblyFileVersion(strAssemblyPath);
+                }
+                catch (Exception)
+                {
+                    // Skip any file that isn't a readable managed assembly.
+                    continue;
+                }
+
+                if (version == null)
+                {
+                    continue;
+                }
+
+                var fileName = Path.GetFileName(strAssemblyPath);
+
+                // Register the assembly regardless of whether it is already registered (ignore the return code).
+                var versionText = version.ToThreePartString();
+                DataProvider.Instance().RegisterAssembly(Null.NullInteger, fileName, versionText);
+                DnnInstallLogger.InstallLogInfo(Localization.GetString("LogStart", Localization.GlobalResourceFile) + "RegisterAssembly:" + fileName + " - " + versionText);
+            }
+
+            DnnInstallLogger.InstallLogInfo(Localization.GetString("LogEnd", Localization.GlobalResourceFile) + "CheckAssembliesForRegistration");
+        }
+
         protected static bool IsLanguageEnabled(int portalid, string code)
         {
-            Locale enabledLanguage;
-            return LocaleController.Instance.GetLocales(portalid).TryGetValue(code, out enabledLanguage);
+            return LocaleController.Instance.GetLocales(portalid).TryGetValue(code, out _);
         }
 
         /// <summary>AddModuleControl adds a new Module Control to the system.</summary>
-        /// <param name="moduleDefId">The Module Definition Id.</param>
+        /// <param name="moduleDefId">The Module Definition ID.</param>
         /// <param name="controlKey">The key for this control in the Definition.</param>
         /// <param name="controlTitle">The title of this control.</param>
         /// <param name="controlSrc">Te source of ths control.</param>
@@ -2412,7 +2455,7 @@ namespace DotNetNuke.Services.Upgrade
             catch (Exception exc)
             {
                 // does not have permission to create the log file
-                Logger.Error(exc);
+                Logger.UpgradeCreateMemberRoleProviderLogException(exc);
             }
 
             return exceptions;
@@ -2504,7 +2547,7 @@ namespace DotNetNuke.Services.Upgrade
                 }
                 catch (Exception ex)
                 {
-                    Logger.Error(ex);
+                    Logger.UpgradeRemoveGettingStartedPageException(ex);
                 }
             }
         }
@@ -2672,7 +2715,7 @@ namespace DotNetNuke.Services.Upgrade
             }
             catch (Exception ex)
             {
-                Logger.Error(ex);
+                Logger.UpgradeFixFipsComplianceAssemblyException(ex);
             }
         }
 
@@ -2767,7 +2810,7 @@ namespace DotNetNuke.Services.Upgrade
             }
             catch (Exception ex)
             {
-                Logger.Error(ex);
+                Logger.UpgradeFindLanguageXmlDocumentException(ex);
 
                 return null;
             }

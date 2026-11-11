@@ -21,10 +21,12 @@ namespace DotNetNuke.Common.Utilities
     using DotNetNuke.Internal.SourceGenerators;
     using DotNetNuke.Security.Permissions;
 
+    using Microsoft.Extensions.Logging;
+
     /// <summary>The XmlUtils class provides Shared/Static methods for manipulating xml files.</summary>
     public partial class XmlUtils
     {
-        private static readonly ILog Logger = LoggerSource.Instance.GetLogger(typeof(XmlUtils));
+        private static readonly ILogger Logger = DnnLoggingController.GetLogger<XmlUtils>();
 
         public static void AppendElement(ref XmlDocument objDoc, XmlNode objNode, string attName, string attValue, bool includeIfEmpty)
         {
@@ -785,6 +787,22 @@ namespace DotNetNuke.Common.Utilities
             };
             functionReturnValue.Load(objXmlReader);
             return functionReturnValue;
+        }
+
+        public static bool TryReadEndElement(XmlReader reader)
+        {
+            while (reader.NodeType == XmlNodeType.Whitespace)
+            {
+                reader.Read();
+            }
+
+            if (reader.NodeType == XmlNodeType.EndElement)
+            {
+                reader.ReadEndElement();
+                return true;
+            }
+
+            return false;
         }
 
         /// <summary>Creates an <see cref="XPathExpression"/> with variable arguments.</summary>
