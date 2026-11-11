@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information
 namespace DotNetNuke.Entities.Portals
@@ -52,6 +52,7 @@ namespace DotNetNuke.Entities.Portals
     using DotNetNuke.Web.Client;
 
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Logging;
 
     using IAbPortalSettings = DotNetNuke.Abstractions.Portals.IPortalSettings;
     using ICryptographyProvider = DotNetNuke.Abstractions.Security.ICryptographyProvider;
@@ -65,7 +66,7 @@ namespace DotNetNuke.Entities.Portals
     {
         protected const string HttpContextKeyPortalSettingsDictionary = "PortalSettingsDictionary{0}{1}";
 
-        private static readonly ILog Logger = LoggerSource.Instance.GetLogger(typeof(PortalController));
+        private static readonly ILogger Logger = DnnLoggingController.GetLogger<PortalController>();
         private readonly IBusinessControllerProvider businessControllerProvider;
         private readonly IHostSettings hostSettings;
         private readonly IApplicationStatusInfo appStatus;
@@ -175,7 +176,7 @@ namespace DotNetNuke.Entities.Portals
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Logger.PortalControllerCreateChildPortalFolderException(exc);
                 message += Localization.GetString("ChildPortal.Error") + exc.Message + exc.StackTrace;
             }
 
@@ -661,7 +662,7 @@ namespace DotNetNuke.Entities.Portals
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Logger.PortalControllerGetPortalSettingException(exc);
             }
 
             return retValue;
@@ -698,7 +699,7 @@ namespace DotNetNuke.Entities.Portals
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Logger.PortalControllerGetPortalSettingException(exc);
             }
 
             return Null.NullString;
@@ -740,7 +741,7 @@ namespace DotNetNuke.Entities.Portals
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Logger.PortalControllerGetPortalSettingAsBooleanException(exc);
             }
 
             return retValue;
@@ -791,7 +792,7 @@ namespace DotNetNuke.Entities.Portals
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Logger.PortalControllerGetPortalSettingAsBooleanException(exc);
             }
 
             return retValue;
@@ -833,7 +834,7 @@ namespace DotNetNuke.Entities.Portals
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Logger.PortalControllerGetPortalSettingAsIntegerException(exc);
             }
 
             return retValue;
@@ -875,7 +876,7 @@ namespace DotNetNuke.Entities.Portals
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Logger.PortalControllerGetPortalSettingAsDoubleException(exc);
             }
 
             return retValue;
@@ -922,7 +923,7 @@ namespace DotNetNuke.Entities.Portals
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Logger.PortalControllerGetPortalSettingAsIntegerException(exc);
             }
 
             return retValue;
@@ -971,9 +972,14 @@ namespace DotNetNuke.Entities.Portals
             Requires.NotNullOrEmpty("key", settingName);
             Requires.PropertyNotNull("value", settingValue);
             Requires.NotNullOrEmpty("passPhrase", passPhrase);
+            Requires.NotNullOrEmpty("hashAlgorithm", hashAlgorithm.Name);
 
             var cipherText = Security.FIPSCompliant.EncryptAES(hashAlgorithm, settingValue, passPhrase, hostSettings.Guid);
 
+            // Persist the algorithm name so GetEncryptedString derives the same key (it falls back to SHA1 when missing).
+            // Written first without clearing the cache; the cipher text update below clears it, so readers never see a
+            // new algorithm name paired with the old cipher text.
+            UpdatePortalSetting(portalController, portalId, CryptographyUtils.GetAlgorithmNameSettingKey(settingName), hashAlgorithm.Name, false);
             UpdatePortalSetting(portalController, portalId, settingName, cipherText);
         }
 
@@ -1392,7 +1398,7 @@ namespace DotNetNuke.Entities.Portals
                 }
                 catch (Exception exc)
                 {
-                    Logger.Error(exc);
+                    Logger.PortalControllerGetAdminUserException(exc);
                 }
 
                 if (administratorId > 0)
@@ -1472,13 +1478,17 @@ namespace DotNetNuke.Entities.Portals
                 }
                 catch (Exception exc)
                 {
-                    Logger.Error(exc);
+                    Logger.PortalControllerCreateAdminUserException(exc);
                     message += Localization.GetString("CreateAdminUser.Error") + exc.Message + exc.StackTrace;
                 }
 
                 if (administratorId > 0)
                 {
                     this.CreatePortalInternal(portalId, portalName, adminUser, description, keyWords, template, homeDirectory, portalAlias, serverPath, childPath, isChildPortal, ref message);
+                }
+                else
+                {
+                    throw new CreatePortalException(message);
                 }
             }
             else
@@ -1882,7 +1892,7 @@ namespace DotNetNuke.Entities.Portals
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Logger.PortalControllerProcessResourceFileExplicitException(exc);
             }
         }
 
@@ -2181,7 +2191,7 @@ namespace DotNetNuke.Entities.Portals
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Logger.PortalControllerLogDeletePortalException(exc);
             }
 
             DataCache.ClearHostCache(true);
@@ -2354,7 +2364,7 @@ namespace DotNetNuke.Entities.Portals
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Logger.PortalControllerEnableBrowserLanguageInDefaultException(exc);
             }
 
             return retValue;
@@ -2527,7 +2537,7 @@ namespace DotNetNuke.Entities.Portals
                 }
                 catch (Exception exc1)
                 {
-                    Logger.Error(exc1);
+                    Logger.PortalControllerDeleteHomeDirectoryException(exc1);
                     message += Localization.GetString("DeleteUploadFolder.Error") + exc1.Message + exc1.StackTrace;
                 }
 
@@ -2576,7 +2586,7 @@ namespace DotNetNuke.Entities.Portals
                     }
                     catch (Exception exc1)
                     {
-                        Logger.Error(exc1);
+                        Logger.PortalControllerCreateChildPortalFilesException(exc1);
                         message += Localization.GetString("ChildPortal.Error") + exc1.Message + exc1.StackTrace;
                     }
                 }
@@ -2593,7 +2603,7 @@ namespace DotNetNuke.Entities.Portals
                     }
                     catch (Exception exc1)
                     {
-                        Logger.Error(exc1);
+                        Logger.PortalControllerAddDefaultFolderTypesException(exc1);
                         message += Localization.GetString("DefaultFolderMappings.Error") + exc1.Message + exc1.StackTrace;
                     }
                 }
@@ -2612,7 +2622,7 @@ namespace DotNetNuke.Entities.Portals
                     }
                     catch (Exception exc1)
                     {
-                        Logger.Error(exc1);
+                        Logger.PortalControllerApplyPortalTemplateException(exc1);
                         message += Localization.GetString("PortalTemplate.Error") + exc1.Message + exc1.StackTrace;
                     }
                 }
@@ -2667,7 +2677,7 @@ namespace DotNetNuke.Entities.Portals
                     }
                     catch (Exception exc1)
                     {
-                        Logger.Error(exc1);
+                        Logger.PortalControllerCreateDefaultRelationshipsException(exc1);
                     }
 
                     // add profanity list to new portal
@@ -2685,7 +2695,7 @@ namespace DotNetNuke.Entities.Portals
                     }
                     catch (Exception exc1)
                     {
-                        Logger.Error(exc1);
+                        Logger.PortalControllerCreateProfanityListException(exc1);
                     }
 
                     // add banned password list to new portal
@@ -2703,7 +2713,7 @@ namespace DotNetNuke.Entities.Portals
                     }
                     catch (Exception exc1)
                     {
-                        Logger.Error(exc1);
+                        Logger.PortalControllerCreateBannedPasswordsListException(exc1);
                     }
 
                     ServicesRoutingManager.ReRegisterServiceRoutesWhileSiteIsRunning();
@@ -2733,7 +2743,7 @@ namespace DotNetNuke.Entities.Portals
                     }
                     catch (Exception exc)
                     {
-                        Logger.Error(exc);
+                        Logger.PortalControllerLogCreatePortalException(exc);
                     }
 
                     EventManager.Instance.OnPortalCreated(new PortalCreatedEventArgs { PortalId = portalId });
@@ -2758,7 +2768,7 @@ namespace DotNetNuke.Entities.Portals
             }
             catch (Exception ex)
             {
-                Logger.Error(Localization.GetString("CreatingConfiguredFolderMapping.Error"), ex);
+                Logger.PortalControllerEnsureRequiredProvidersForFolderTypesException(ex, Localization.GetString("CreatingConfiguredFolderMapping.Error"));
             }
 
             var webConfig = Config.Load();
@@ -2773,7 +2783,7 @@ namespace DotNetNuke.Entities.Portals
                 }
                 catch (Exception ex)
                 {
-                    Logger.Error(Localization.GetString("CreatingConfiguredFolderMapping.Error") + ": " + folderTypeConfig.Name, ex);
+                    Logger.PortalControllerAddFolderMappingException(ex, Localization.GetString("CreatingConfiguredFolderMapping.Error"), folderTypeConfig.Name);
                 }
             }
         }
@@ -2881,7 +2891,7 @@ namespace DotNetNuke.Entities.Portals
         [DnnDeprecated(9, 11, 1, "Use DotNetNuke.Entities.Portals.Templates.PortalTemplateInfo instead")]
         public partial class PortalTemplateInfo
         {
-            private static readonly ILog Logger = LoggerSource.Instance.GetLogger(typeof(PortalController));
+            private static readonly ILogger Logger = DnnLoggingController.GetLogger<PortalController>();
             private readonly IHostSettings hostSettings;
             private readonly string originalCultureCode;
             private string resourceFilePath;
@@ -2975,7 +2985,7 @@ namespace DotNetNuke.Entities.Portals
                 }
                 catch (Exception e)
                 {
-                    Logger.Error("Error while parsing: " + this.TemplateFilePath, e);
+                    Logger.PortalControllerErrorWhileParsing(e, this.TemplateFilePath);
                 }
             }
 
@@ -2993,7 +3003,7 @@ namespace DotNetNuke.Entities.Portals
                 }
                 catch (Exception e)
                 {
-                    Logger.Error("Error while parsing: " + this.TemplateFilePath, e);
+                    Logger.PortalControllerErrorWhileParsing(e, this.TemplateFilePath);
                 }
             }
 

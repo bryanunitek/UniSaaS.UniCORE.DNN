@@ -9,7 +9,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -119,7 +118,7 @@ public class LocalUpgradeService : ILocalUpgradeService
             Version mainAssemblyVersion = null;
             if (mainAssemblyEntry is not null)
             {
-                mainAssemblyVersion = await ReadZippedAssemblyVersion(mainAssemblyEntry, cancellationToken);
+                mainAssemblyVersion = await AssemblyVersions.GetAssemblyFileVersion(mainAssemblyEntry, cancellationToken);
             }
 
             var upgradeInfo = archive.FileEntries()
@@ -187,6 +186,7 @@ public class LocalUpgradeService : ILocalUpgradeService
     /// <inheritdoc />
     public async Task StartLocalUpgrade(LocalUpgradeInfo upgrade, CancellationToken cancellationToken)
     {
+        this.SetAppOffline();
         var upgradeZipPath = Path.Combine(this.UpgradeDirectoryPath, upgrade.PackageName + ".zip");
         using var fileStream = File.OpenRead(upgradeZipPath);
         using var archive = new ZipArchive(fileStream, ZipArchiveMode.Read);
@@ -218,31 +218,30 @@ public class LocalUpgradeService : ILocalUpgradeService
                 .Where(entry => !upgradeSettings.UpgradeExclude.Any(filter => entry.FullName.StartsWith(filter, StringComparison.OrdinalIgnoreCase))),
             this.appStatus.ApplicationMapPath,
             cancellationToken);
+        this.SetAppOnline();
     }
 
-    private static async Task<Version> ReadZippedAssemblyVersion(ZipArchiveEntry assemblyEntry, CancellationToken cancellationToken)
+    private void SetAppOffline()
     {
-        var tempPath = Path.Combine(Globals.InstallMapPath, "Temp", Path.GetFileNameWithoutExtension(Path.GetRandomFileName()));
-        var tempAssemblyPath = Path.Combine(tempPath, assemblyEntry.Name);
-
-        Directory.CreateDirectory(tempPath);
-        try
+        var appOfflineFile = Path.Combine(Globals.HostMapPath, "AppOffline", "App_Offline.htm.resources");
+        if (!File.Exists(appOfflineFile))
         {
-            using (var tempAssemblyFileStream = File.Create(tempAssemblyPath))
-            using (var assemblyStream = assemblyEntry.Open())
-            {
-                const int DefaultBufferSize = 81920;
-                await assemblyStream.CopyToAsync(
-                    tempAssemblyFileStream,
-                    DefaultBufferSize,
-                    cancellationToken);
-            }
-
-            return AssemblyName.GetAssemblyName(tempAssemblyPath).Version;
+            appOfflineFile = Path.Combine(this.appStatus.ApplicationMapPath, "Resources", "AppOffline", "App_Offline.htm.resources");
         }
-        finally
+
+        var targetFile = Path.Combine(this.appStatus.ApplicationMapPath, "App_Offline.htm");
+        if (!File.Exists(targetFile))
         {
-            Directory.Delete(tempPath, true);
+            File.Copy(appOfflineFile, targetFile);
+        }
+    }
+
+    private void SetAppOnline()
+    {
+        var appOfflineFile = Path.Combine(this.appStatus.ApplicationMapPath, "App_Offline.htm");
+        if (File.Exists(appOfflineFile))
+        {
+            File.Delete(appOfflineFile);
         }
     }
 
@@ -260,7 +259,7 @@ public class LocalUpgradeService : ILocalUpgradeService
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 var installFile = new InstallFile(entry, this.Package.InstallerInfo);
-                installFile.SetVersion(await ReadZippedAssemblyVersion(entry, cancellationToken));
+                installFile.SetVersion(await AssemblyVersions.GetAssemblyFileVersion(entry, cancellationToken));
                 this.Files.Add(installFile);
             }
         }

@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information
 namespace Dnn.PersonaBar.SiteSettings.Services
@@ -53,6 +53,7 @@ namespace Dnn.PersonaBar.SiteSettings.Services
     using DotNetNuke.Web.UI.WebControls;
 
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Logging;
 
     using Constants = Dnn.PersonaBar.Library.Constants;
     using FileInfo = System.IO.FileInfo;
@@ -91,7 +92,7 @@ namespace Dnn.PersonaBar.SiteSettings.Services
         private const string SearchAuthorBoostSetting = "Search_Author_Boost";
 
         private const double DefaultMessagingThrottlingInterval = 0.5; // set default MessagingThrottlingInterval value to 30 seconds.
-        private static readonly ILog Logger = LoggerSource.Instance.GetLogger(typeof(SiteSettingsController));
+        private static readonly ILogger Logger = DnnLoggingController.GetLogger<SiteSettingsController>();
 
         private readonly Components.SiteSettingsController controller = new Components.SiteSettingsController();
         private readonly INavigationManager navigationManager = navigationManager ?? Globals.GetCurrentServiceProvider().GetRequiredService<INavigationManager>();
@@ -212,7 +213,7 @@ namespace Dnn.PersonaBar.SiteSettings.Services
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Logger.SiteSettingsControllerGetPortalSettingsException(exc);
                 return this.Request.CreateErrorResponse(HttpStatusCode.InternalServerError, exc);
             }
         }
@@ -257,7 +258,7 @@ namespace Dnn.PersonaBar.SiteSettings.Services
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Logger.SiteSettingsControllerGetCultureListException(exc);
                 return this.Request.CreateErrorResponse(HttpStatusCode.InternalServerError, exc);
             }
         }
@@ -319,7 +320,7 @@ namespace Dnn.PersonaBar.SiteSettings.Services
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Logger.SiteSettingsControllerUpdatePortalSettingsException(exc);
                 return this.Request.CreateErrorResponse(HttpStatusCode.InternalServerError, exc);
             }
         }
@@ -392,13 +393,16 @@ namespace Dnn.PersonaBar.SiteSettings.Services
                         RedirectAfterLogoutTabName = this.TabSanitizer(redirectAfterLogoutTabId, pid)?.TabName,
                         RedirectAfterRegistrationTabId = this.TabSanitizer(redirectAfterRegistrationTabId, pid)?.TabID,
                         RedirectAfterRegistrationTabName = this.TabSanitizer(redirectAfterRegistrationTabId, pid)?.TabName,
-                        PageHeadText = localizedPortalSettings["PageHeadText"],
+                        PageHeadText = localizedPortalSettings.TryGetValue("PageHeadText", out var pageHeadText) ? pageHeadText : string.Empty,
+                        PageHeaderTags = PageHeaderTagInfo.GetPortalItems(pid, cultureCode)
+                            .Select(item => new Dnn.PersonaBar.Pages.Services.Dto.PageHeaderTagItem { Name = item.Name, Content = item.Content })
+                            .ToList(),
                     },
                 });
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Logger.SiteSettingsControllerGetDefaultPagesSettingsException(exc);
                 return this.Request.CreateErrorResponse(HttpStatusCode.InternalServerError, exc);
             }
         }
@@ -445,13 +449,14 @@ namespace Dnn.PersonaBar.SiteSettings.Services
                 PortalController.UpdatePortalSetting(this.portalController, pid, "Redirect_AfterLogin", this.ValidateTabId(request.RedirectAfterLoginTabId, pid).ToString(CultureInfo.InvariantCulture), false, cultureCode);
                 PortalController.UpdatePortalSetting(this.portalController, pid, "Redirect_AfterLogout", this.ValidateTabId(request.RedirectAfterLogoutTabId, pid).ToString(CultureInfo.InvariantCulture), false, cultureCode);
                 PortalController.UpdatePortalSetting(this.portalController, pid, "Redirect_AfterRegistration", this.ValidateTabId(request.RedirectAfterRegistrationTabId, pid).ToString(CultureInfo.InvariantCulture), false, cultureCode);
-                PortalController.UpdatePortalSetting(this.portalController, pid, "PageHeadText", string.IsNullOrEmpty(request.PageHeadText) ? "false" : request.PageHeadText);
+                PageHeaderTagInfo.SavePortalItems(pid, request.PageHeaderTags?.Select(item => new PageHeaderTagInfo { Name = item.Name, Content = item.Content }), cultureCode);
+                PortalController.UpdatePortalSetting(this.portalController, pid, "PageHeadText", "false", false, cultureCode);
 
                 return this.Request.CreateResponse(HttpStatusCode.OK, new { Success = true, });
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Logger.SiteSettingsControllerUpdateDefaultPagesSettingsException(exc);
                 return this.Request.CreateErrorResponse(HttpStatusCode.InternalServerError, exc);
             }
         }
@@ -493,7 +498,7 @@ namespace Dnn.PersonaBar.SiteSettings.Services
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Logger.SiteSettingsControllerGetMessagingSettingsException(exc);
                 return this.Request.CreateErrorResponse(HttpStatusCode.InternalServerError, exc);
             }
         }
@@ -530,7 +535,7 @@ namespace Dnn.PersonaBar.SiteSettings.Services
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Logger.SiteSettingsControllerUpdateMessagingSettingsException(exc);
                 return this.Request.CreateErrorResponse(HttpStatusCode.InternalServerError, exc);
             }
         }
@@ -574,7 +579,7 @@ namespace Dnn.PersonaBar.SiteSettings.Services
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Logger.SiteSettingsControllerGetProfileSettingsException(exc);
                 return this.Request.CreateErrorResponse(HttpStatusCode.InternalServerError, exc);
             }
         }
@@ -611,7 +616,7 @@ namespace Dnn.PersonaBar.SiteSettings.Services
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Logger.SiteSettingsControllerUpdateProfileSettingsException(exc);
                 return this.Request.CreateErrorResponse(HttpStatusCode.InternalServerError, exc);
             }
         }
@@ -655,7 +660,7 @@ namespace Dnn.PersonaBar.SiteSettings.Services
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Logger.SiteSettingsControllerGetProfilePropertiesException(exc);
                 return this.Request.CreateErrorResponse(HttpStatusCode.InternalServerError, exc);
             }
         }
@@ -726,7 +731,7 @@ namespace Dnn.PersonaBar.SiteSettings.Services
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Logger.SiteSettingsControllerGetProfilePropertyException(exc);
                 return this.Request.CreateErrorResponse(HttpStatusCode.InternalServerError, exc);
             }
         }
@@ -778,7 +783,7 @@ namespace Dnn.PersonaBar.SiteSettings.Services
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Logger.SiteSettingsControllerGetProfilePropertyLocalizationException(exc);
                 return this.Request.CreateErrorResponse(HttpStatusCode.InternalServerError, exc);
             }
         }
@@ -824,7 +829,7 @@ namespace Dnn.PersonaBar.SiteSettings.Services
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Logger.SiteSettingsControllerUpdateProfilePropertyLocalizationException(exc);
                 return this.Request.CreateErrorResponse(HttpStatusCode.InternalServerError, exc);
             }
         }
@@ -883,7 +888,7 @@ namespace Dnn.PersonaBar.SiteSettings.Services
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Logger.SiteSettingsControllerAddProfilePropertyException(exc);
                 return this.Request.CreateErrorResponse(HttpStatusCode.InternalServerError, exc);
             }
         }
@@ -945,7 +950,7 @@ namespace Dnn.PersonaBar.SiteSettings.Services
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Logger.SiteSettingsControllerUpdateProfilePropertyException(exc);
                 return this.Request.CreateErrorResponse(HttpStatusCode.InternalServerError, exc);
             }
         }
@@ -982,7 +987,7 @@ namespace Dnn.PersonaBar.SiteSettings.Services
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Logger.SiteSettingsControllerUpdateProfilePropertyOrdersException(exc);
                 return this.Request.CreateErrorResponse(HttpStatusCode.InternalServerError, exc);
             }
         }
@@ -1018,7 +1023,7 @@ namespace Dnn.PersonaBar.SiteSettings.Services
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Logger.SiteSettingsControllerDeleteProfilePropertyException(exc);
                 return this.Request.CreateErrorResponse(HttpStatusCode.InternalServerError, exc);
             }
         }
@@ -1078,7 +1083,7 @@ namespace Dnn.PersonaBar.SiteSettings.Services
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Logger.SiteSettingsControllerGetUrlMappingSettingsException(exc);
                 return this.Request.CreateErrorResponse(HttpStatusCode.InternalServerError, exc);
             }
         }
@@ -1109,7 +1114,7 @@ namespace Dnn.PersonaBar.SiteSettings.Services
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Logger.SiteSettingsControllerUpdateUrlMappingSettingsException(exc);
                 return this.Request.CreateErrorResponse(HttpStatusCode.InternalServerError, exc);
             }
         }
@@ -1160,7 +1165,7 @@ namespace Dnn.PersonaBar.SiteSettings.Services
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Logger.SiteSettingsControllerGetSiteAliasesException(exc);
                 return this.Request.CreateErrorResponse(HttpStatusCode.InternalServerError, exc);
             }
         }
@@ -1199,7 +1204,7 @@ namespace Dnn.PersonaBar.SiteSettings.Services
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Logger.SiteSettingsControllerGetSiteAliasException(exc);
                 return this.Request.CreateErrorResponse(HttpStatusCode.InternalServerError, exc);
             }
         }
@@ -1265,7 +1270,7 @@ namespace Dnn.PersonaBar.SiteSettings.Services
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Logger.SiteSettingsControllerAddSiteAliasException(exc);
                 return this.Request.CreateErrorResponse(HttpStatusCode.InternalServerError, exc);
             }
         }
@@ -1333,7 +1338,7 @@ namespace Dnn.PersonaBar.SiteSettings.Services
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Logger.SiteSettingsControllerUpdateSiteAliasException(exc);
                 return this.Request.CreateErrorResponse(HttpStatusCode.InternalServerError, exc);
             }
         }
@@ -1361,7 +1366,7 @@ namespace Dnn.PersonaBar.SiteSettings.Services
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Logger.SiteSettingsControllerDeleteSiteAliasException(exc);
                 return this.Request.CreateErrorResponse(HttpStatusCode.InternalServerError, exc);
             }
         }
@@ -1393,7 +1398,7 @@ namespace Dnn.PersonaBar.SiteSettings.Services
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Logger.SiteSettingsControllerSetPrimarySiteAliasException(exc);
                 return this.Request.CreateErrorResponse(HttpStatusCode.InternalServerError, exc);
             }
         }
@@ -1432,7 +1437,7 @@ namespace Dnn.PersonaBar.SiteSettings.Services
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Logger.SiteSettingsControllerGetListInfoException(exc);
                 return this.Request.CreateErrorResponse(HttpStatusCode.InternalServerError, exc);
             }
         }
@@ -1478,7 +1483,7 @@ namespace Dnn.PersonaBar.SiteSettings.Services
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Logger.SiteSettingsControllerUpdateListEntryException(exc);
                 return this.Request.CreateErrorResponse(HttpStatusCode.InternalServerError, exc);
             }
         }
@@ -1507,7 +1512,7 @@ namespace Dnn.PersonaBar.SiteSettings.Services
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Logger.SiteSettingsControllerDeleteListEntryException(exc);
                 return this.Request.CreateErrorResponse(HttpStatusCode.InternalServerError, exc);
             }
         }
@@ -1565,7 +1570,7 @@ namespace Dnn.PersonaBar.SiteSettings.Services
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Logger.SiteSettingsControllerUpdateListEntryOrdersException(exc);
                 return this.Request.CreateErrorResponse(HttpStatusCode.InternalServerError, exc);
             }
         }
@@ -1610,7 +1615,7 @@ namespace Dnn.PersonaBar.SiteSettings.Services
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Logger.SiteSettingsControllerGetPrivacySettingsException(exc);
                 return this.Request.CreateErrorResponse(HttpStatusCode.InternalServerError, exc);
             }
         }
@@ -1650,7 +1655,7 @@ namespace Dnn.PersonaBar.SiteSettings.Services
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Logger.SiteSettingsControllerUpdatePrivacySettingsException(exc);
                 return this.Request.CreateErrorResponse(HttpStatusCode.InternalServerError, exc);
             }
         }
@@ -1678,7 +1683,7 @@ namespace Dnn.PersonaBar.SiteSettings.Services
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Logger.SiteSettingsControllerResetTermsAgreementException(exc);
                 return this.Request.CreateErrorResponse(HttpStatusCode.InternalServerError, exc);
             }
         }
@@ -1724,7 +1729,7 @@ namespace Dnn.PersonaBar.SiteSettings.Services
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Logger.SiteSettingsControllerGetBasicSearchSettingsException(exc);
                 return this.Request.CreateErrorResponse(HttpStatusCode.InternalServerError, exc);
             }
         }
@@ -1805,7 +1810,7 @@ namespace Dnn.PersonaBar.SiteSettings.Services
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Logger.SiteSettingsControllerUpdateBasicSearchSettingsException(exc);
                 return this.Request.CreateErrorResponse(HttpStatusCode.InternalServerError, exc);
             }
         }
@@ -1825,7 +1830,7 @@ namespace Dnn.PersonaBar.SiteSettings.Services
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Logger.SiteSettingsControllerCompactSearchIndexException(exc);
                 return this.Request.CreateErrorResponse(HttpStatusCode.InternalServerError, exc);
             }
         }
@@ -1845,7 +1850,7 @@ namespace Dnn.PersonaBar.SiteSettings.Services
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Logger.SiteSettingsControllerHostSearchReindexException(exc);
                 return this.Request.CreateErrorResponse(HttpStatusCode.InternalServerError, exc);
             }
         }
@@ -1872,7 +1877,7 @@ namespace Dnn.PersonaBar.SiteSettings.Services
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Logger.SiteSettingsControllerPortalSearchReindexException(exc);
                 return this.Request.CreateErrorResponse(HttpStatusCode.InternalServerError, exc);
             }
         }
@@ -1905,7 +1910,7 @@ namespace Dnn.PersonaBar.SiteSettings.Services
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Logger.SiteSettingsControllerGetPortalsException(exc);
                 return this.Request.CreateErrorResponse(HttpStatusCode.InternalServerError, exc);
             }
         }
@@ -1951,7 +1956,7 @@ namespace Dnn.PersonaBar.SiteSettings.Services
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Logger.SiteSettingsControllerGetSynonymsGroupsException(exc);
                 return this.Request.CreateErrorResponse(HttpStatusCode.InternalServerError, exc);
             }
         }
@@ -2001,7 +2006,7 @@ namespace Dnn.PersonaBar.SiteSettings.Services
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Logger.SiteSettingsControllerAddSynonymsGroupException(exc);
                 return this.Request.CreateErrorResponse(HttpStatusCode.InternalServerError, exc);
             }
         }
@@ -2061,7 +2066,7 @@ namespace Dnn.PersonaBar.SiteSettings.Services
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Logger.SiteSettingsControllerUpdateSynonymsGroupException(exc);
                 return this.Request.CreateErrorResponse(HttpStatusCode.InternalServerError, exc);
             }
         }
@@ -2095,7 +2100,7 @@ namespace Dnn.PersonaBar.SiteSettings.Services
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Logger.SiteSettingsControllerDeleteSynonymsGroupException(exc);
                 return this.Request.CreateErrorResponse(HttpStatusCode.InternalServerError, exc);
             }
         }
@@ -2138,7 +2143,7 @@ namespace Dnn.PersonaBar.SiteSettings.Services
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Logger.SiteSettingsControllerGetIgnoreWordsException(exc);
                 return this.Request.CreateErrorResponse(HttpStatusCode.InternalServerError, exc);
             }
         }
@@ -2177,7 +2182,7 @@ namespace Dnn.PersonaBar.SiteSettings.Services
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Logger.SiteSettingsControllerAddIgnoreWordsException(exc);
                 return this.Request.CreateErrorResponse(HttpStatusCode.InternalServerError, exc);
             }
         }
@@ -2216,7 +2221,7 @@ namespace Dnn.PersonaBar.SiteSettings.Services
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Logger.SiteSettingsControllerUpdateIgnoreWordsException(exc);
                 return this.Request.CreateErrorResponse(HttpStatusCode.InternalServerError, exc);
             }
         }
@@ -2246,7 +2251,7 @@ namespace Dnn.PersonaBar.SiteSettings.Services
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Logger.SiteSettingsControllerDeleteIgnoreWordsException(exc);
                 return this.Request.CreateErrorResponse(HttpStatusCode.InternalServerError, exc);
             }
         }
@@ -2312,7 +2317,7 @@ namespace Dnn.PersonaBar.SiteSettings.Services
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Logger.SiteSettingsControllerGetLanguageSettingsException(exc);
                 return this.Request.CreateErrorResponse(HttpStatusCode.InternalServerError, exc);
             }
         }
@@ -2385,7 +2390,7 @@ namespace Dnn.PersonaBar.SiteSettings.Services
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Logger.SiteSettingsControllerUpdateLanguageSettingsException(exc);
                 return this.Request.CreateErrorResponse(HttpStatusCode.InternalServerError, exc);
             }
         }
@@ -2457,7 +2462,7 @@ namespace Dnn.PersonaBar.SiteSettings.Services
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Logger.SiteSettingsControllerGetLanguagesException(exc);
                 return this.Request.CreateErrorResponse(HttpStatusCode.InternalServerError, exc);
             }
         }
@@ -2547,7 +2552,7 @@ namespace Dnn.PersonaBar.SiteSettings.Services
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Logger.SiteSettingsControllerGetLanguageException(exc);
                 return this.Request.CreateErrorResponse(HttpStatusCode.InternalServerError, exc);
             }
         }
@@ -2590,7 +2595,7 @@ namespace Dnn.PersonaBar.SiteSettings.Services
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Logger.SiteSettingsControllerGetAllLanguagesException(exc);
                 return this.Request.CreateErrorResponse(HttpStatusCode.InternalServerError, exc);
             }
         }
@@ -2630,7 +2635,7 @@ namespace Dnn.PersonaBar.SiteSettings.Services
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Logger.SiteSettingsControllerAddLanguageException(exc);
                 return this.Request.CreateErrorResponse(HttpStatusCode.InternalServerError, exc);
             }
         }
@@ -2658,7 +2663,7 @@ namespace Dnn.PersonaBar.SiteSettings.Services
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Logger.SiteSettingsControllerUpdateLanguageRolesException(exc);
                 return this.Request.CreateErrorResponse(HttpStatusCode.InternalServerError, exc);
             }
         }
@@ -2758,7 +2763,7 @@ namespace Dnn.PersonaBar.SiteSettings.Services
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Logger.SiteSettingsControllerUpdateLanguageException(exc);
                 return this.Request.CreateErrorResponse(HttpStatusCode.InternalServerError, exc);
             }
         }
@@ -2909,7 +2914,7 @@ namespace Dnn.PersonaBar.SiteSettings.Services
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Logger.SiteSettingsControllerVerifyLanguageResourceFilesException(exc);
                 return this.Request.CreateErrorResponse(HttpStatusCode.InternalServerError, exc);
             }
         }
@@ -2962,7 +2967,7 @@ namespace Dnn.PersonaBar.SiteSettings.Services
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Logger.SiteSettingsControllerGetModuleListException(exc);
                 return this.Request.CreateErrorResponse(HttpStatusCode.InternalServerError, exc);
             }
         }
@@ -3032,7 +3037,7 @@ namespace Dnn.PersonaBar.SiteSettings.Services
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Logger.SiteSettingsControllerCreateLanguagePackException(exc);
                 return this.Request.CreateErrorResponse(HttpStatusCode.InternalServerError, exc);
             }
         }
@@ -3083,7 +3088,7 @@ namespace Dnn.PersonaBar.SiteSettings.Services
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Logger.SiteSettingsControllerGetTranslatorRolesException(exc);
                 return this.Request.CreateErrorResponse(HttpStatusCode.InternalServerError, exc);
             }
         }
@@ -3119,7 +3124,7 @@ namespace Dnn.PersonaBar.SiteSettings.Services
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Logger.SiteSettingsControllerGetTranslatorRoleGroupsException(exc);
                 return this.Request.CreateErrorResponse(HttpStatusCode.InternalServerError, exc);
             }
         }
@@ -3143,16 +3148,23 @@ namespace Dnn.PersonaBar.SiteSettings.Services
                 var portal = PortalController.Instance.GetPortal(pid);
                 var portalSettings = new PortalSettings(portal);
 
+                var siteAllowList = portalSettings.AllowedExtensionsWhitelist;
+                var hostDefaultAllowList = this.hostSettings.DefaultEndUserExtensionAllowList;
+                var imageAllowList = Components.AllowedExtensionsHelper.GetImageAllowList(Globals.ImageFileTypes, this.hostSettings.AllowedExtensionAllowList);
+
                 return this.Request.CreateResponse(HttpStatusCode.OK, new
                 {
                     Settings = new
                     {
-                        AllowedExtensionsWhitelist = portalSettings.AllowedExtensionsWhitelist.ToStorageString(),
-                        HostAllowedExtensionsWhitelists = this.hostSettings.DefaultEndUserExtensionAllowList.ToStorageString(),
-                        ImageExtensionsList = Globals.ImageFileTypes,
+                        PortalId = pid,
+                        AllowedExtensionsWhitelist = siteAllowList.ToStorageString(),
+                        AllowedExtensionsWhitelistOption = Components.AllowedExtensionsHelper.GetWhitelistOption(siteAllowList, hostDefaultAllowList, imageAllowList),
+                        HostAllowedExtensionsWhitelists = hostDefaultAllowList.ToStorageString(),
+                        ImageExtensionsList = imageAllowList.ToStorageString(),
                         EnablePopups = portalSettings.EnablePopUps,
                         portalSettings.InjectModuleHyperLink,
                         portalSettings.InlineEditorEnabled,
+                        portalSettings.AllowJsInHtmlModule,
                         portalSettings.AllowJsInModuleHeaders,
                         portalSettings.AllowJsInModuleFooters,
                         portalSettings.ShowQuickModuleAddMenu,
@@ -3166,7 +3178,7 @@ namespace Dnn.PersonaBar.SiteSettings.Services
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Logger.SiteSettingsControllerGetOtherSettingsException(exc);
                 return this.Request.CreateErrorResponse(HttpStatusCode.InternalServerError, exc);
             }
         }
@@ -3182,22 +3194,53 @@ namespace Dnn.PersonaBar.SiteSettings.Services
         {
             try
             {
+                if (request == null)
+                {
+                    return this.Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Invalid request.");
+                }
+
                 var pid = request.PortalId ?? this.PortalId;
+                if (!this.UserInfo.IsSuperUser && this.PortalId != pid)
+                {
+                    return this.Request.CreateErrorResponse(HttpStatusCode.Unauthorized, AuthFailureMessage);
+                }
+
+                // Validate the allowed extensions before persisting anything, so an invalid request doesn't partially update the settings.
+                // A null value means the caller doesn't want to change the allowed extensions.
+                string allowedExtensionsToStore = null;
+                var updateAllowedExtensions = request.AllowedExtensionsWhitelist != null;
+                IList<string> rejectedExtensions = new List<string>();
+                if (updateAllowedExtensions)
+                {
+                    var requestedAllowList = new FileExtensionWhitelist(request.AllowedExtensionsWhitelist);
+                    if (!Components.AllowedExtensionsHelper.AreEquivalent(requestedAllowList, this.hostSettings.DefaultEndUserExtensionAllowList))
+                    {
+                        // A site can never allow more than what the host permits.
+                        var effectiveAllowList = requestedAllowList.RestrictBy(this.hostSettings.AllowedExtensionAllowList);
+                        if (!effectiveAllowList.AllowedExtensions.Any())
+                        {
+                            // Storing an empty value deletes the setting, which would silently revert the site to the default list.
+                            return this.Request.CreateErrorResponse(
+                                HttpStatusCode.BadRequest,
+                                Localization.GetString("AllowedExtensionsWhitelistEmpty.Error", Components.Constants.Constants.LocalResourcesFile));
+                        }
+
+                        rejectedExtensions = Components.AllowedExtensionsHelper.GetRejectedExtensions(requestedAllowList, effectiveAllowList);
+                        allowedExtensionsToStore = effectiveAllowList.ToStorageString();
+                    }
+                }
+
                 PortalController.Instance.UpdatePortalSetting(pid, "EnablePopups", request.EnablePopups.ToString(), false, null, false);
                 PortalController.Instance.UpdatePortalSetting(pid, "InjectModuleHyperLink", request.InjectModuleHyperLink.ToString(), false, null, false);
                 PortalController.Instance.UpdatePortalSetting(pid, "InlineEditorEnabled", request.InlineEditorEnabled.ToString(), false, null, false);
+                PortalController.Instance.UpdatePortalSetting(pid, "AllowJsInHtmlModule", request.AllowJsInHtmlModule.ToString(), false, null, false);
                 PortalController.Instance.UpdatePortalSetting(pid, "AllowJsInModuleHeaders", request.AllowJsInModuleHeaders.ToString(), false, null, false);
                 PortalController.Instance.UpdatePortalSetting(pid, "AllowJsInModuleFooters", request.AllowJsInModuleFooters.ToString(), false, null, false);
                 PortalController.Instance.UpdatePortalSetting(pid, "ShowQuickModuleAddMenu", request.ShowQuickModuleAddMenu.ToString(), false, null, false);
-                if (request.AllowedExtensionsWhitelist == this.hostSettings.DefaultEndUserExtensionAllowList.ToStorageString())
+                if (updateAllowedExtensions)
                 {
-                    PortalController.Instance.UpdatePortalSetting(pid, "AllowedExtensionsWhitelist", null, false, null, false);
-                }
-                else
-                {
-                    IFileExtensionAllowList allowList = new FileExtensionWhitelist(request.AllowedExtensionsWhitelist);
-                    allowList = allowList.RestrictBy(this.hostSettings.AllowedExtensionAllowList);
-                    PortalController.Instance.UpdatePortalSetting(pid, "AllowedExtensionsWhitelist", allowList.ToStorageString(), false, null, false);
+                    // A null value removes the site setting so the site follows the host's default list.
+                    PortalController.Instance.UpdatePortalSetting(pid, "AllowedExtensionsWhitelist", allowedExtensionsToStore, false, null, false);
                 }
 
                 if (request.EnabledVersioning.HasValue)
@@ -3221,11 +3264,11 @@ namespace Dnn.PersonaBar.SiteSettings.Services
                 }
 
                 DataCache.ClearCache();
-                return this.Request.CreateResponse(HttpStatusCode.OK, new { Success = true, });
+                return this.Request.CreateResponse(HttpStatusCode.OK, new { Success = true, RejectedExtensions = rejectedExtensions, });
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Logger.SiteSettingsControllerUpdateOtherSettingsException(exc);
                 return this.Request.CreateErrorResponse(HttpStatusCode.InternalServerError, exc);
             }
         }
